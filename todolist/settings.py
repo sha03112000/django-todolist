@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'todolist.middleware.DisableClientSideCachingMiddleware' # Custom middleware to disable client-side caching
 ]
 
 ROOT_URLCONF = 'todolist.urls'

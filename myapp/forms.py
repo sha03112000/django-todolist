@@ -3,8 +3,13 @@ from django import forms
 from .models import Login
 import re
 
+
+
+
+        
+    
 # Form for creating a product
-class AddProductForm(forms.ModelForm):
+class AddUserForm(forms.ModelForm):
     class Meta:
         model = Login
         fields = ['username', 'password', 'email']

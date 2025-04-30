@@ -1,63 +1,191 @@
-<!-- filepath: p:\Python\From Beginning\todolist\myapp\templates\index.html -->
-<!DOCTYPE html>
-<html lang="en">
+{% extends "main.html" %} {% block content %} {% if messages %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Todo List</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-</head>
 
-<body>
-    {% if messages %}
-    <div>
-        {% for message in messages %}
-        <p>{{ message }}</p>
-        {% endfor %}
-    </div>
-    {% endif %}
-    <div class="container mt-5">
-        <div class="mt-5">
-            <a href="" class="btn btn-primary">To do form</a>
+<div>
+  {% for message in messages %}
+  <p>{{ message }}</p>
+  {% endfor %}
+</div>
+{% endif %} {% if form.errors %}
+<div class="alert alert-danger">
+  <ul>
+    {% for field in form %} {% for error in field.errors %}
+    <li>{{ error }}</li>
+    {% endfor %} {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<a href="/addNew" class="btn btn-primary add-btn">ADD</a>
+<table class="table">
+  <thead>
+    <tr>
+      <th id="id" scope="col">#</th>
+      <th scope="col">Title</th>
+      <th scope="col">Description</th>
+      <th scope="col">Completed</th>
+      <th scope="col">action</th>
+      <th scope="col">delete</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in data %}
+
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td>{{ item.title }}</td>
+      <td>{{ item.description }}</td>
+      <td>
+        {% if item.completed %} completed {% else %} notcompleted {% endif %}
+      </td>
+      <td>
+        <button data-id="{{ item.id }}" class="btn btn-info update-btn">
+          Update
+        </button>
+      </td>
+      <td>
+        <button data-id="{{ item.id }}" class="btn btn-danger delete-btn">
+          Delete</button>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="6" class="text-center">No items found</td>
+      {% endfor %}
+    </tr>
+  </tbody>
+</table>
+
+<div
+  class="modal fade"
+  id="exampleModal"
+  tabindex="-1"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <form action="{% url 'updateAction' %}" method="POST">
+        {% csrf_token %}
+        <div class="modal-body">
+          <input type="hidden" name="taskId" id="taskId" />
+
+          <label for="updateTitle" class="form-label">Title</label>
+          <input
+            type="text"
+            id="updateTitle"
+            name="title"
+            class="form-control"
+          />
+
+          <label for="UpdateDescription" class="form-label">Description</label>
+          <input
+            type="text"
+            id="UpdateDescription"
+            name="description"
+            class="form-control"
+          />
+
+          <label for="UpdateDescription" class="form-label">Completed</label>
+          <select
+            id="updateCompleted"
+            name="completed"
+            class="form-select form-select-sm"
+            aria-label="Small select example"
+          >
+            <option>Open this select menu</option>
+            <option value="true">Completed</option>
+            <option value="false">Not Completed</option>
+          </select>
         </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Title</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Completed</th>
-                    <th scope="col">action</th>
-                    <th scope="col">delete</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in data %}
-
-                <tr>
-                    <th scope="row">{{ forloop.counter }}</th>
-                    <td>{{ item.title }}</td>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.title }}</td>
-                    <td>
-                        {% if item.completed %} completed {% else %} notcompleted {% endif %}
-                    </td>
-                    <td><a href="/addTodo" class="btn btn-info">Update</a></td>
-                    <td><a href="" class="btn btn-danger">Disable</a></td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center">No items found</td>
-                {% endfor %}
-                </tr>
-            </tbody>
-        </table>
-        <!-- Your content goes here -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
     </div>
-    <!-- Bootstrap JS (Optional, for interactive components) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  </div>
+</div>
 
-</html>
+<script>
+  
+  $(document).ready(function () {
+
+    //csrf setup
+    $.ajaxSetup({
+      beforeSend: function (xhr, settings) {
+        const csrfToken = document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute("content");
+        xhr.setRequestHeader("X-CSRFToken", csrfToken);
+      },
+    });
+
+    // for update
+    $(".update-btn").click(function () {
+      const id = $(this).data("id");
+      const title = $(this).closest("tr").find("td:nth-child(2)").text();
+      const description = $(this).closest("tr").find("td:nth-child(3)").text();
+      const completedText = $(this)
+        .closest("tr")
+        .find("td:nth-child(4)")
+        .text()
+        .trim()
+        .toLowerCase();
+
+      let completedValue = "";
+      if (completedText === "completed") {
+        completedValue = "true";
+      } else if (completedText === "notcompleted") {
+        completedValue = "false";
+      }
+
+      $("#taskId").val(id);
+      $("#updateTitle").val(title);
+      $("#UpdateDescription").val(description);
+      $("#updateCompleted").val(completedValue);
+      $("#exampleModal").modal("show");
+    });
+
+    //for delete
+    $(".delete-btn").click(function () {
+      const id = $(this).data("id");
+      const confirmDelete = confirm(
+        "Are you sure you want to delete this item?"
+      );
+      if (!confirmDelete) {
+        return;
+      }
+      // const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+      $.ajax({
+        url: "/delete/" + id + "/",
+        type: "POST",
+        // headers: { "X-CSRFToken": csrfToken },
+        success: function (response) {
+          console.log(response);
+          alert(response.message);
+          location.reload();
+        },
+        error: function (xhr, status, error) {
+          console.log(error);
+        },
+      });
+    });
+  });
+</script>
+{% endblock %}

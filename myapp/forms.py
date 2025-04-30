@@ -1,13 +1,9 @@
 from django.contrib.auth.hashers import make_password
 from django import forms
-from .models import Login
+from .models import Login, Todo
 import re
 
 
-
-
-        
-    
 # Form for creating a product
 class AddUserForm(forms.ModelForm):
     class Meta:
@@ -33,7 +29,22 @@ class AddUserForm(forms.ModelForm):
         if not re.match(r'^[a-zA-Z0-9_.+-]{8,}$', password):
             raise forms.ValidationError("Password must be at least 8 characters long!")
         return make_password(password)
+    
+class AddListForm(forms.ModelForm):
+    class Meta:
+        model = Todo
+        fields = ['title', 'description']
         
+        # exclude = ['title'] this is used to exclude a field from the form
+         
+    def clean_title(self):
+        title = self.cleaned_data.get('title').lower()
+        qs = Todo.objects.filter(title=title)
+        if self.instance.id:
+            qs = qs.exclude(id=self.instance.id) #exclude current item when updating
+        if qs.exists():
+            raise forms.ValidationError("this title is already exists")
+        return title
 
 # Form for updating a product
 # class UpdateProductForm(forms.ModelForm):

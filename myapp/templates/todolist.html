@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo add</title>
+  </head>
+  <body>
+    {% if messages %}
+    <div>
+      {% for message in messages %}
+      <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+    {% endif %} 
+    <!-- {% if form.errors %}
+    <div class="alert alert-danger">
+      <ul>
+        {% for field in form %} {% for error in field.errors %}
+        <li>{{ error }}</li>
+        {% endfor %} {% endfor %}
+      </ul>
+    </div>
+    {% endif %} -->
+    <form action="{% url 'addNewAction' %}" method="POST">
+      {% csrf_token %}
+      <div>
+        <div style="display: flex; gap: 15px; margin-top: 50px">
+          <input
+            type="text"
+            name="title"
+            id="title"
+            value="{{ form.title.value }}"
+          />
+          {% if form.title.errors %}
+          <div class="text-danger">{{ form.title.errors }}</div>
+          {% endif %}
+          <input
+            type="text"
+            name="description"
+            id=""
+            value="{{ form.description.value }}"
+          />
+          {% if form.description.errors %}
+          <div class="text-danger">{{ form.description.errors }}</div>
+          {% endif %}
+          <select name="completed" id="completed">
+            <option value="">Select Status</option>
+            <option value="true" {% if form.completed.value == 'true' %}selected{% endif %}>Completed</option>
+            <option value="false" {% if form.completed.value == 'false' %}selected{% endif %}>Not Completed</option>
+          </select>
+          {% if form.completed.errors %}
+          <div class="text-danger">{{ form.completed.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <button type="submit" id="formbtn">submit</button>
+    </form>
+
+    
+    
+  </body>
+</html>

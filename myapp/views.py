@@ -1,5 +1,6 @@
-from django.shortcuts import redirect, render
-from . forms import AddUserForm
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from . forms import AddListForm, AddUserForm
 from django.contrib import messages
 from django import forms
 from .models import Login, Todo
@@ -31,10 +32,7 @@ class AuthenticationForm(forms.Form):
     
     
 # Create your views here.
-@login_required_decorator  # Placeholder for the decorator
-def index(request):
-    data = Todo.objects.all() 
-    return render(request, 'index.html', {'data': data})
+
 
 
 def sigIn(request):
@@ -78,10 +76,12 @@ def signUpAction(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Sign up successful!')
-            return redirect('signUp')   # Redirect to a success page or login page
+            return redirect('signIn')   # Redirect to a success page or login page
         else:
             return render(request, 'signup.html', {'form': form})
-    return render(request, 'signup.html')
+    else:
+        form = AddUserForm()
+    return render(request, 'signup.html', {'form': form})
 
 
 def logout_view(request):
@@ -90,8 +90,57 @@ def logout_view(request):
     return redirect('sigIn')
 
 
+@login_required_decorator  # Placeholder for the decorator
+def index(request):
+    data = Todo.objects.all().order_by('id') 
+    return render(request, 'index.html', {'data': data})
+
+@login_required_decorator
 def addTodo(request):
     return render(request, 'todolist.html')
+
+
+@login_required_decorator
+def addTodoAction(request):
+    if request.method == 'POST':
+        form = AddListForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'data added sucessfully')
+            return redirect('index')
+        else:
+            messages.error(request,'unable to add list')
+            return render(request, 'todolist.html', {'form': form})
+    else:
+     form = AddListForm()
+    return render(request, 'todolist.html', {'form': form})
+
+@login_required_decorator
+def updateAction(request):
+    if request.method == 'POST':
+        instance = Todo.objects.get(id=request.POST.get('taskId'))
+        form = AddListForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Data updated successfully')
+            return redirect('index')
+        else:
+            messages.error(request, 'Unable to update list')
+            data = Todo.objects.all().order_by('id') 
+            return render(request, 'index.html', {'form': form, 'data': data})
+    return redirect('index')  # fallback to index if not POST
+
+    
+
+@login_required_decorator
+def delete(request, id):
+    if request.method == 'POST':
+        instance = get_object_or_404(Todo, id=id)
+        print(instance)
+        instance.delete()
+        return JsonResponse({'message': 'Data deleted successfully'})
+    return JsonResponse({'message': 'Invalid request'}, status=400)
+
 # def update_product(request, pk):
 #     product = Product.objects.get(pk=pk)
 #     if request.method == 'POST':

@@ -109,9 +109,9 @@ WSGI_APPLICATION = 'todolist.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tododjango',  # Your database name
-        'USER': 'postgres',      # Your PostgreSQL username
-        'PASSWORD': 'willyem4312',  # Your PostgreSQL password
+        'NAME': '',  # Your database name
+        'USER': '',      # Your PostgreSQL username
+        'PASSWORD': '',  # Your PostgreSQL password
         'HOST': 'localhost',     # Database host (usually localhost for local development)
         'PORT': '5432',          # Default PostgreSQL port
     }
